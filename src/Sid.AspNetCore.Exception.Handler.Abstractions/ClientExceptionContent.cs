@@ -4,12 +4,10 @@ using System.Text;
 
 namespace Sid.AspNetCore.Exception.Handler.Abstractions
 {
-    public class JsExceptionModel
+    public class ClientExceptionContent
     {
-        public string Url { get; set; }
+        public string Source { get; set; }
 
         public string Message { get; set; }
-
-        public string Stack { get; set; }
     }
 }

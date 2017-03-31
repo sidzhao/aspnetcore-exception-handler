@@ -9,6 +9,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C6569679-963
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sid.AspNetCore.Exception.Handler.Abstractions", "src\Sid.AspNetCore.Exception.Handler.Abstractions\Sid.AspNetCore.Exception.Handler.Abstractions.csproj", "{C214C9D6-861C-4E36-8CF8-A7B97659BE08}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CC4E6E3F-8FA6-44F4-995A-FD45C7D84FCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sid.AspNetCore.Exception.Handler.Tests", "test\Sid.AspNetCore.Exception.Handler.Tests\Sid.AspNetCore.Exception.Handler.Tests.csproj", "{40B9729C-15E5-4C0F-A7E0-AF21C0FFA0BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +27,10 @@ Global
 		{C214C9D6-861C-4E36-8CF8-A7B97659BE08}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C214C9D6-861C-4E36-8CF8-A7B97659BE08}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C214C9D6-861C-4E36-8CF8-A7B97659BE08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40B9729C-15E5-4C0F-A7E0-AF21C0FFA0BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40B9729C-15E5-4C0F-A7E0-AF21C0FFA0BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40B9729C-15E5-4C0F-A7E0-AF21C0FFA0BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40B9729C-15E5-4C0F-A7E0-AF21C0FFA0BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,5 +38,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{A3EA242C-8B03-46C9-9121-63876CB3B3B6} = {C6569679-9631-48E3-A6CA-BE6F8B6E4AD7}
 		{C214C9D6-861C-4E36-8CF8-A7B97659BE08} = {C6569679-9631-48E3-A6CA-BE6F8B6E4AD7}
+		{40B9729C-15E5-4C0F-A7E0-AF21C0FFA0BA} = {CC4E6E3F-8FA6-44F4-995A-FD45C7D84FCD}
 	EndGlobalSection
 EndGlobal

@@ -10,8 +10,8 @@ namespace Sid.AspNetCore.Exception.Handler
 
         public bool OutputErrorResult { get; set; } = true;
 
-        public bool JsExceptionEnabled { get; set; }
+        public bool ClientExceptionEnabled { get; set; }
 
-        public string JsExceptionPath = "/exception/js";
+        public string ClientExceptionPath = "/exception/client";
     }
 }

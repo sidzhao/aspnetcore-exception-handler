@@ -57,9 +57,9 @@ namespace Sid.AspNetCore.Exception.Handler
             var optionsWrapper = Options.Create(options);
             app.UseMiddleware<ExceptionHandlerMiddleware>(optionsWrapper);
 
-            if (options.JsExceptionEnabled)
+            if (options.ClientExceptionEnabled)
             {
-                app.UseMiddleware<JsExceptionHandlerMiddleware>(optionsWrapper);
+                app.UseMiddleware<ClientExceptionHandlerMiddleware>(optionsWrapper);
             }
 
             return app;
