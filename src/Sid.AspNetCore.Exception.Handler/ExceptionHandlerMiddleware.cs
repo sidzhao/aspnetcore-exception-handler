@@ -145,12 +145,17 @@ namespace Sid.AspNetCore.Exception.Handler
             sb.AppendLine($"Request Path: {context.Request.Path}");
             sb.AppendLine($"Request Query String: {context.Request.QueryString}");
 
-            string bodyString;
-            using (var stremReader = new StreamReader(context.Request.Body, Encoding.UTF8))
+            if (context.Request.Body.CanSeek)
             {
-                bodyString = stremReader.ReadToEnd();
+                context.Request.Body.Position = 0;
+                string bodyString;
+                using (var stremReader = new StreamReader(context.Request.Body, Encoding.UTF8))
+                {
+                    context.Request.Body.Position = 0;
+                    bodyString = stremReader.ReadToEnd();
+                }
+                sb.AppendLine($"Request Body: {bodyString}");
             }
-            sb.AppendLine($"Request Body: {bodyString}");
         }
 
         private void GetErrorMessage(System.Exception ex, StringBuilder sb)

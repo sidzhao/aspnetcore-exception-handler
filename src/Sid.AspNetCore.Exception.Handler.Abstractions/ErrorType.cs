@@ -3,6 +3,7 @@
     public enum ErrorType
     {
         System = 1,
-        NonSystem = 2
+        NonSystem = 2,
+        SignInFailed = 4
     }
 }
