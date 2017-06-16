@@ -82,12 +82,7 @@ namespace Sid.AspNetCore.Exception.Handler
                 {
                     try
                     {
-                        await MailSender.SendEmailAsync(new MailMessage
-                        {
-                            Subject = Options.MailOptions.Subject,
-                            Content = errMessage,
-                            Tos = Options.MailOptions.Tos.ToList()
-                        });
+                        await MailSender.SendEmailAsync(new MailMessage(Options.MailOptions.Subject, errMessage, Options.MailOptions.Tos.ToList()));
                     }
                     catch (System.Exception ex2)
                     {

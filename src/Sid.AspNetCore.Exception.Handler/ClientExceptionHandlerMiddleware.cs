@@ -98,12 +98,7 @@ namespace Sid.AspNetCore.Exception.Handler
 
             if (Options?.MailOptions != null && MailSender != null)
             {
-                await MailSender.SendEmailAsync(new MailMessage
-                {
-                    Subject = Options.MailOptions.Subject,
-                    Content = BuildMailBody(clientException),
-                    Tos = Options.MailOptions.Tos.ToList()
-                });
+                await MailSender.SendEmailAsync(new MailMessage(Options.MailOptions.Subject, BuildMailBody(clientException), Options.MailOptions.Tos.ToList()));
             }
 
             context.Response.StatusCode = (int)HttpStatusCode.OK;
