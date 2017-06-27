@@ -71,23 +71,27 @@ namespace Sid.AspNetCore.Exception.Handler
             }
             catch (System.Exception ex)
             {
-                Logger.LogError(0, ex, "An unhandled exception has occurred: " + ex.Message);
-
-                var errMessage = BuildErrorMessage(ex, context);
-                Logger.LogError(errMessage);
-
-                Options.ManualProcess?.Invoke(ex);
-
-                if (Options?.MailOptions != null && MailSender != null)
+                // If it's NonSystemException, no need to send error email
+                if (!(ex is NonSystemException))
                 {
-                    try
+                    Logger.LogError(0, ex, "An unhandled exception has occurred: " + ex.Message);
+
+                    var errMessage = BuildErrorMessage(ex, context);
+                    Logger.LogError(errMessage);
+
+                    Options.ManualProcess?.Invoke(ex);
+
+                    if (Options?.MailOptions != null && MailSender != null)
                     {
-                        await MailSender.SendEmailAsync(new MailMessage(Options.MailOptions.Subject, errMessage, Options.MailOptions.Tos.ToList()));
-                    }
-                    catch (System.Exception ex2)
-                    {
-                        Logger.LogError(0, ex2, "An unhandled exception has occurred during send error email: " + ex2.Message);
-                        Logger.LogError(BuildErrorMessage(ex2));
+                        try
+                        {
+                            await MailSender.SendEmailAsync(new MailMessage(Options.MailOptions.Subject, errMessage, Options.MailOptions.Tos.ToList()));
+                        }
+                        catch (System.Exception ex2)
+                        {
+                            Logger.LogError(0, ex2, "An unhandled exception has occurred during send error email: " + ex2.Message);
+                            Logger.LogError(BuildErrorMessage(ex2));
+                        }
                     }
                 }
 
