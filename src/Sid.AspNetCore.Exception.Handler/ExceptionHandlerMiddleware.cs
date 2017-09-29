@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Sid.AspNetCore.Exception.Handler.Abstractions;
+using Sid.AspNetCore.Exception.Handler.Options;
+using Sid.AspNetCore.Exception.Handler.Utils;
 using Sid.MailKit.Abstractions;
 
 namespace Sid.AspNetCore.Exception.Handler
@@ -16,52 +18,33 @@ namespace Sid.AspNetCore.Exception.Handler
     public class ExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
-        
-        public ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionHandlerMiddleware> logger, IOptions<ExceptionHandlerOptions> options = null, IMailSender mailSender = null)
-        {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
 
+        public ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionHandlerMiddleware> logger, IErrorContentCreator errorContentCreator, IOptions<ExceptionHandlerOptions> options = null, IErrorSender errorSender = null)
+        {
             if (options != null)
             {
                 Options = options.Value;
-                if (Options.MailOptions != null)
+
+                if (Options.SendErrorEnabled && errorSender == null)
                 {
-                    if (Options.MailOptions.Tos == null)
-                    {
-                        throw new ArgumentNullException(nameof(Options.MailOptions.Tos));
-                    }
-
-                    if (!Options.MailOptions.Tos.Any())
-                    {
-                        throw new System.Exception("At lease has one email to address.");
-                    }
-
-                    if (string.IsNullOrEmpty(Options.MailOptions.Subject))
-                    {
-                        throw new ArgumentNullException(nameof(Options.MailOptions.Subject));
-                    }
-
-                    if (mailSender == null)
-                    {
-                        throw new ArgumentNullException(nameof(mailSender));
-                    }
-
-                    MailSender = mailSender;
+                    throw new ArgumentNullException(nameof(errorSender));
                 }
             }
 
-            Logger = logger;
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            ErrorContentCreator = errorContentCreator ?? throw new ArgumentNullException(nameof(errorContentCreator));
+            ErrorSender = errorSender;
+
             _next = next;
         }
 
-        public ExceptionHandlerOptions Options { get; set; }
+        public ExceptionHandlerOptions Options { get; }
 
-        public ILogger Logger { get; set; }
+        public ILogger Logger { get; }
 
-        public IMailSender MailSender { get; set; }
+        public IErrorContentCreator ErrorContentCreator { get; }
+
+        public IErrorSender ErrorSender { get; }
 
         public async Task Invoke(HttpContext context)
         {
@@ -76,21 +59,22 @@ namespace Sid.AspNetCore.Exception.Handler
                 {
                     Logger.LogError(0, ex, "An unhandled exception has occurred: " + ex.Message);
 
-                    var errMessage = BuildErrorMessage(ex, context);
+                    var errMessage = ErrorContentCreator.BuildContent(ex, context);
                     Logger.LogError(errMessage);
 
-                    Options.ManualProcess?.Invoke(ex);
+                    Options?.ManualProcess?.Invoke(ex);
 
-                    if (Options?.MailOptions != null && MailSender != null)
+                    if (Options != null && Options.SendErrorEnabled)
                     {
                         try
                         {
-                            await MailSender.SendEmailAsync(new MailMessage(Options.MailOptions.Subject, errMessage, Options.MailOptions.Tos.ToList()));
+                            var content = ErrorContentCreator.BuildContent(ex, context);
+                            await ErrorSender.SendAsync(content);
                         }
                         catch (System.Exception ex2)
                         {
                             Logger.LogError(0, ex2, "An unhandled exception has occurred during send error email: " + ex2.Message);
-                            Logger.LogError(BuildErrorMessage(ex2));
+                            Logger.LogError(ErrorContentCreator.BuildContent(ex2));
                         }
                     }
                 }
@@ -99,17 +83,17 @@ namespace Sid.AspNetCore.Exception.Handler
                 if (Options != null && Options.OutputErrorResult)
                 {
                     var response = new ApiErrorResult();
-                    var exception = ex as NonSystemException;
-                    if (exception != null)
+                    var nonSystemException = ex as NonSystemException;
+                    if (nonSystemException != null)
                     {
                         response.Type = ErrorType.NonSystem;
-                        response.Code = exception.ErrorCode;
-                        response.Message = exception.Message;
+                        response.Code = nonSystemException.ErrorCode;
+                        response.Message = nonSystemException.Message;
                     }
                     else
                     {
                         response.Type = ErrorType.System;
-                        response.Message = ex.Message;
+                        response.Message = Options.IsProduction ? Options.ProductionErrorMessage : ex.Message;
                     }
 
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
@@ -121,53 +105,6 @@ namespace Sid.AspNetCore.Exception.Handler
                                 new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
                         }));
                 }
-            }
-        }
-
-        private string BuildErrorMessage(System.Exception ex, HttpContext context = null)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("-------------------- Exception Details --------------------");
-            GetErrorMessage(ex, sb);
-            if (context != null)
-            {
-                sb.AppendLine("-------------------- Request Infomation --------------------");
-                GetRequestInfo(context, sb);
-            }
-            return sb.ToString();
-        }
-
-        private void GetRequestInfo(HttpContext context, StringBuilder sb)
-        {
-            sb.AppendLine($"Request Head: {JsonConvert.SerializeObject(context.Request.Headers)}");
-            sb.AppendLine($"Request Host: {context.Request.Host}");
-            sb.AppendLine($"Request Path: {context.Request.Path}");
-            sb.AppendLine($"Request Query String: {context.Request.QueryString}");
-
-            if (context.Request.Body.CanSeek)
-            {
-                context.Request.Body.Position = 0;
-                string bodyString;
-                using (var stremReader = new StreamReader(context.Request.Body, Encoding.UTF8))
-                {
-                    context.Request.Body.Position = 0;
-                    bodyString = stremReader.ReadToEnd();
-                }
-                sb.AppendLine($"Request Body: {bodyString}");
-            }
-        }
-
-        private void GetErrorMessage(System.Exception ex, StringBuilder sb)
-        {
-            sb.AppendLine($"Message: {ex.Message}");
-            sb.AppendLine($"Source: {ex.Source}");
-            sb.AppendLine($"StackTrace:");
-            sb.AppendLine(ex.StackTrace);
-
-            if (ex.InnerException != null)
-            {
-                sb.AppendLine("-------------------- InnertException --------------------");
-                GetErrorMessage(ex.InnerException, sb);
             }
         }
     }

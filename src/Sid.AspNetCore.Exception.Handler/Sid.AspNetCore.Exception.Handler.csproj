@@ -9,7 +9,7 @@
     <PackageProjectUrl>https://github.com/sidzhao/aspnetcore-exception-handler</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sidzhao/aspnetcore-exception-handler.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.0.4</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

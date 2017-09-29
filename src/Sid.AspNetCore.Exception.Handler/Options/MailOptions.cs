@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Sid.MailKit.Abstractions;
 
-namespace Sid.AspNetCore.Exception.Handler
+namespace Sid.AspNetCore.Exception.Handler.Options
 {
     public class MailOptions
     {

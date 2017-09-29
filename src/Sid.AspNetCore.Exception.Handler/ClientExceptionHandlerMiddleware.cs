@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Sid.AspNetCore.Exception.Handler.Abstractions;
+using Sid.AspNetCore.Exception.Handler.Options;
+using Sid.AspNetCore.Exception.Handler.Utils;
 using Sid.MailKit.Abstractions;
 
 namespace Sid.AspNetCore.Exception.Handler
@@ -16,44 +18,20 @@ namespace Sid.AspNetCore.Exception.Handler
     public class ClientExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
-        
-        public ClientExceptionHandlerMiddleware(RequestDelegate next, ILogger<ClientExceptionHandlerMiddleware> logger, IOptions<ExceptionHandlerOptions> options = null, IMailSender mailSender = null)
-        {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
 
+        public ClientExceptionHandlerMiddleware(RequestDelegate next, ILogger<ClientExceptionHandlerMiddleware> logger, IOptions<ExceptionHandlerOptions> options = null, IErrorSender errorSender = null)
+        {
             if (options != null)
             {
                 Options = options.Value;
-                if (Options.MailOptions != null)
+
+                if (Options.SendErrorEnabled && errorSender == null)
                 {
-                    if (Options.MailOptions.Tos == null)
-                    {
-                        throw new ArgumentNullException(nameof(Options.MailOptions.Tos));
-                    }
-
-                    if (!Options.MailOptions.Tos.Any())
-                    {
-                        throw new System.Exception("At lease has one email to address.");
-                    }
-
-                    if (string.IsNullOrEmpty(Options.MailOptions.Subject))
-                    {
-                        throw new ArgumentNullException(nameof(Options.MailOptions.Subject));
-                    }
-
-                    if (mailSender == null)
-                    {
-                        throw new ArgumentNullException(nameof(mailSender));
-                    }
-
-                    MailSender = mailSender;
+                    throw new ArgumentNullException(nameof(errorSender));
                 }
             }
 
-            Logger = logger;
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _next = next;
         }
 
@@ -61,7 +39,7 @@ namespace Sid.AspNetCore.Exception.Handler
 
         public ILogger Logger { get; set; }
 
-        public IMailSender MailSender { get; set; }
+        public IErrorSender ErrorSender { get; set; }
 
         public Task Invoke(HttpContext context)
         {
@@ -69,7 +47,7 @@ namespace Sid.AspNetCore.Exception.Handler
             if (Options.ClientExceptionEnabled && context.Request.Path.Equals(Options.ClientExceptionPath, StringComparison.Ordinal))
             {
                 // Request must be POST with Content-Type: application/json
-                if (!context.Request.Method.Equals("POST") && 
+                if (!context.Request.Method.Equals("POST") &&
                     (context.Request.ContentType == null || context.Request.ContentType.Equals("applicatin/json", StringComparison.OrdinalIgnoreCase)))
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -96,9 +74,10 @@ namespace Sid.AspNetCore.Exception.Handler
 
             Logger?.LogError(errMessage);
 
-            if (Options?.MailOptions != null && MailSender != null)
+            if (Options != null && Options.SendErrorEnabled)
             {
-                await MailSender.SendEmailAsync(new MailMessage(Options.MailOptions.Subject, BuildMailBody(clientException), Options.MailOptions.Tos.ToList()));
+                var content = BuildMailBody(clientException);
+                await ErrorSender.SendAsync(content);
             }
 
             context.Response.StatusCode = (int)HttpStatusCode.OK;

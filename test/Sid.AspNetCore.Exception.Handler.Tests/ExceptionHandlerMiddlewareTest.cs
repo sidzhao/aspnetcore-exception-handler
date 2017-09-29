@@ -9,6 +9,8 @@ using Moq;
 using Newtonsoft.Json;
 using Sid.AspNetCore.Exception.Handler.Abstractions;
 using Sid.MailKit.Abstractions;
+using Sid.AspNetCore.Exception.Handler;
+using Sid.AspNetCore.Exception.Handler.Options;
 using Xunit;
 
 namespace Sid.AspNetCore.Exception.Handler.Tests
@@ -28,20 +30,33 @@ namespace Sid.AspNetCore.Exception.Handler.Tests
                 emailSenderMock.Setup(
                     p => p.SendEmailAsync(It.IsAny<MailMessage>()));
                 collection.AddSingleton<IMailSender>(provider => emailSenderMock.Object);
+
+                collection.AddSidExceptionHandler(options =>
+                {
+                    options.Tos = new List<MailAddress>
+                    {
+                        new MailAddress {Address = "123@test.com"},
+                        new MailAddress {Address = "246@test.com"}
+                    };
+                    options.Subject = "Test Error";
+                }
+                //, provider =>
+                //{
+                //    var sender = new Mock<IMailSender>();
+                //    sender.Setup(
+                //        p => p.SendEmailAsync(It.IsAny<MailMessage>()));
+                //    return sender.Object;
+                //}
+                );
             });
             hostBuilder.Configure(app =>
             {
-                var options = new ExceptionHandlerOptions();
-                options.MailOptions = new MailOptions
+                var options = new ExceptionHandlerOptions
                 {
-                    Tos = new List<MailAddress> { new MailAddress { Address = "123@test.com" }, new MailAddress { Address = "246@test.com" } },
-                    Subject = "Test Error"
+                    SendErrorEnabled = true,
+                    ManualProcess = exception => { processManualTimes++; }
                 };
 
-                options.ManualProcess = exception =>
-                {
-                    processManualTimes++;
-                };
 
                 app.UseSidExceptionHandler(options);
                 app.Run(context =>

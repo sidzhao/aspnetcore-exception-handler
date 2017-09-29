@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Newtonsoft.Json;
 using Sid.AspNetCore.Exception.Handler.Abstractions;
+using Sid.AspNetCore.Exception.Handler.Options;
 using Sid.MailKit.Abstractions;
 using Xunit;
 
@@ -19,9 +20,14 @@ namespace Sid.AspNetCore.Exception.Handler.Tests
         public async Task TestExceptionLogger()
         {
             var hostBuilder = new WebHostBuilder();
-            hostBuilder.Configure(app =>
+            hostBuilder
+                .ConfigureServices(collection =>
+                {
+                    collection.AddSidExceptionHandler();
+                })
+                .Configure(app =>
             {
-                var options = new ExceptionHandlerOptions {ClientExceptionEnabled = true};
+                var options = new ExceptionHandlerOptions { ClientExceptionEnabled = true };
 
                 app.UseSidExceptionHandler(options);
             });
