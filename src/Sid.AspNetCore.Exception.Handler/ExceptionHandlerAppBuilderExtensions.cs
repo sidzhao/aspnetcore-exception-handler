@@ -40,14 +40,14 @@ namespace Sid.AspNetCore.Exception.Handler
             return services;
         }
 
-        public static void AddSidExceptionHandler(this IServiceCollection services)
+        public static IServiceCollection AddSidExceptionHandler(this IServiceCollection services)
         {
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddSingleton<IErrorContentCreator, ErrorContentCreator>();
+            return services.AddSingleton<IErrorContentCreator, ErrorContentCreator>();
         }
 
         public static IApplicationBuilder UseSidExceptionHandler(this IApplicationBuilder app)
