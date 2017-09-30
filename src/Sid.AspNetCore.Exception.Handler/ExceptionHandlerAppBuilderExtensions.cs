@@ -12,7 +12,7 @@ namespace Sid.AspNetCore.Exception.Handler
 {
     public static class ExceptionHandlerAppBuilderExtensions
     {
-        public static void AddSidExceptionHandler(this IServiceCollection services, Action<MailOptions> configureOptions, Func<IServiceProvider, IMailSender> implementationFactory = null)
+        public static IServiceCollection AddSidExceptionHandler(this IServiceCollection services, Action<MailOptions> configureOptions, Func<IServiceProvider, IMailSender> implementationFactory = null)
         {
             if (services == null)
             {
@@ -36,6 +36,8 @@ namespace Sid.AspNetCore.Exception.Handler
             services.AddSingleton<IErrorSender, MailErrorSender>();
 
             services.AddSidExceptionHandler();
+
+            return services;
         }
 
         public static void AddSidExceptionHandler(this IServiceCollection services)
