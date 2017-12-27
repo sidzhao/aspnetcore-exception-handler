@@ -68,8 +68,7 @@ namespace Sid.AspNetCore.Exception.Handler
                     {
                         try
                         {
-                            var content = ErrorContentCreator.BuildContent(ex, context);
-                            await ErrorSender.SendAsync(content);
+                            await ErrorSender.SendAsync(errMessage);
                         }
                         catch (System.Exception ex2)
                         {

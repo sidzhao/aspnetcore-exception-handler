@@ -9,7 +9,8 @@
     <PackageProjectUrl>https://github.com/sidzhao/aspnetcore-exception-handler</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sidzhao/aspnetcore-exception-handler.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

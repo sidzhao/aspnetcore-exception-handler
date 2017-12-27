@@ -31,6 +31,7 @@ namespace Sid.AspNetCore.Exception.Handler
                 }
             }
 
+            ErrorSender = errorSender;
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _next = next;
         }
